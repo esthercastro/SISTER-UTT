@@ -1,0 +1,6 @@
+{
+  "name": "Mapeo Territorial UTT",
+  "description": "Sistema de mapeo territorial para la Unión de Trabajadores de la Tierra (UTT) - Red de nodos agroecológicos georreferenciados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

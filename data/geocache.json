@@ -1,0 +1,257 @@
+{
+  "Díaz Vélez 3761, Almagro, CABA, Argentina": {
+    "lat": -34.6084183,
+    "lng": -58.4195315,
+    "metodo": "nominatim"
+  },
+  "Rosario 650, Caballito, Caba, Argentina": {
+    "lat": -34.6200507,
+    "lng": -58.4380435,
+    "metodo": "nominatim"
+  },
+  "Armenia 1820, Palermo, CABA, Argentina": {
+    "lat": -34.5884586,
+    "lng": -58.4260387,
+    "metodo": "nominatim"
+  },
+  "Serrano 450, Villa Crespo, caba, Argentina": {
+    "lat": -34.5967486,
+    "lng": -58.4432377,
+    "metodo": "nominatim"
+  },
+  "Directorio 2150, Flores, CABA, Argentina": {
+    "lat": -34.6325072,
+    "lng": -58.4570671,
+    "metodo": "nominatim"
+  },
+  "Olleros 3900, Chacarita, Caba, Argentina": {
+    "lat": -34.5847809,
+    "lng": -58.4522186,
+    "metodo": "nominatim"
+  },
+  "Zapiola 1650, Belgrano, CABA, Argentina": {
+    "lat": -34.5704737,
+    "lng": -58.459221,
+    "metodo": "nominatim"
+  },
+  "Pinto 3400, Saavedra, CABA, Argentina": {
+    "lat": -34.554872,
+    "lng": -58.473613,
+    "metodo": "nominatim"
+  },
+  "Conesa 850, Colegiales, Caba, Argentina": {
+    "lat": -34.5741139,
+    "lng": -58.449376,
+    "metodo": "nominatim"
+  },
+  "San Juan 3450, Boedo, CABA, Argentina": {
+    "lat": -34.6253138,
+    "lng": -58.4141101,
+    "metodo": "nominatim"
+  },
+  "Defensa 1120, San Telmo, CABA, Argentina": {
+    "lat": -34.6169194,
+    "lng": -58.3716839,
+    "metodo": "nominatim"
+  },
+  "Caseros 2850, Parque Patricios, Caba, Argentina": {
+    "lat": -34.6367691,
+    "lng": -58.4028393,
+    "metodo": "nominatim"
+  },
+  "Monroe 4900, Villa Urquiza, CABA, Argentina": {
+    "lat": -34.5730917,
+    "lng": -58.4840431,
+    "metodo": "nominatim"
+  },
+  "Nueva York 3800, Villa Devoto, CABA, Argentina": {
+    "lat": -34.598775,
+    "lng": -58.509234,
+    "metodo": "nominatim"
+  },
+  "Artigas 4900, Villa Pueyrredon, Caba, Argentina": {
+    "lat": -34.5818874,
+    "lng": -58.4992121,
+    "metodo": "nominatim"
+  },
+  "O'Higgins 3100, Nuñez, CABA, Argentina": {
+    "lat": -34.5508588,
+    "lng": -58.4611146,
+    "metodo": "nominatim"
+  },
+  "Brasil 1250, Constitucion, caba, Argentina": {
+    "lat": -34.6290673,
+    "lng": -58.3895141,
+    "metodo": "nominatim"
+  },
+  "Gaona 4100, Floresta, CABA, Argentina": {
+    "lat": -34.6242799,
+    "lng": -58.4816141,
+    "metodo": "nominatim"
+  },
+  "Alberdi 5800, Mataderos, Caba, Argentina": {
+    "lat": -34.6513227,
+    "lng": -58.5019935,
+    "metodo": "nominatim"
+  },
+  "Rivadavia 11200, Liniers, CABA, Argentina": {
+    "lat": -34.6389986,
+    "lng": -58.5224067,
+    "metodo": "nominatim"
+  },
+  "Maipú 1540, Vicente Lopez, NORTE, Argentina": {
+    "lat": -34.528235,
+    "lng": -58.47539,
+    "metodo": "referencia"
+  },
+  "Corrientes 450, Olivos, Norte, Argentina": {
+    "lat": -34.510002,
+    "lng": -58.491734,
+    "metodo": "referencia"
+  },
+  "San Martín 2100, Florida, norte, Argentina": {
+    "lat": -32.8711247,
+    "lng": -60.6996508,
+    "metodo": "nominatim"
+  },
+  "Belgrano 320, San Isidro, NORTE, Argentina": {
+    "lat": -34.474112,
+    "lng": -58.526479,
+    "metodo": "referencia"
+  },
+  "Santa Fe 1950, Martinez, Norte, Argentina": {
+    "lat": -34.494964,
+    "lng": -58.501815,
+    "metodo": "referencia"
+  },
+  "Perú 420, Acassuso, Norte, Argentina": {
+    "lat": -34.480348,
+    "lng": -58.502225,
+    "metodo": "referencia"
+  },
+  "Centenario 1800, Beccar, NORTE, Argentina": {
+    "lat": -34.457723,
+    "lng": -58.537665,
+    "metodo": "referencia"
+  },
+  "Constitución 920, San Fernando, Norte, Argentina": {
+    "lat": -34.441261,
+    "lng": -58.561226,
+    "metodo": "referencia"
+  },
+  "Cazón 1200, Tigre, norte, Argentina": {
+    "lat": -34.425217,
+    "lng": -58.579235,
+    "metodo": "referencia"
+  },
+  "Alvear 2450, Villa Ballester, Norte, Argentina": {
+    "lat": -34.549358,
+    "lng": -58.553903,
+    "metodo": "referencia"
+  },
+  "Mitre 850, Avellaneda, SUR, Argentina": {
+    "lat": -34.662361,
+    "lng": -58.367581,
+    "metodo": "referencia"
+  },
+  "Hipólito Yrigoyen 4100, Lanus Oeste, Sur, Argentina": {
+    "lat": -34.703706,
+    "lng": -58.389478,
+    "metodo": "referencia"
+  },
+  "9 de Julio 1450, Lanus, sur, Argentina": {
+    "lat": -34.705529,
+    "lng": -58.392236,
+    "metodo": "referencia"
+  },
+  "Maipú 280, Banfield, SUR, Argentina": {
+    "lat": -34.743948,
+    "lng": -58.395185,
+    "metodo": "referencia"
+  },
+  "Laprida 620, Lomas de Zamora, Sur, Argentina": {
+    "lat": -34.762991,
+    "lng": -58.403939,
+    "metodo": "referencia"
+  },
+  "25 de Mayo 150, Temperley, Sur, Argentina": {
+    "lat": -34.776099,
+    "lng": -58.39826,
+    "metodo": "referencia"
+  },
+  "Diagonal Brown 1350, Adrogue, SUR, Argentina": {
+    "lat": -34.799356,
+    "lng": -58.389061,
+    "metodo": "referencia"
+  },
+  "Rivadavia 340, Quilmes, Sur, Argentina": {
+    "lat": -34.725888,
+    "lng": -58.255267,
+    "metodo": "referencia"
+  },
+  "Belgrano 450, Bernal, sur, Argentina": {
+    "lat": -34.704924,
+    "lng": -58.281654,
+    "metodo": "referencia"
+  },
+  "Calle 14 nro 4800, Berazategui, SUR, Argentina": {
+    "lat": -34.763805,
+    "lng": -58.211311,
+    "metodo": "referencia"
+  },
+  "Calle 1 nro 1250, La Plata, Sur, Argentina": {
+    "lat": -34.919052,
+    "lng": -57.956791,
+    "metodo": "referencia"
+  },
+  "Cantilo 480, City Bell, SUR, Argentina": {
+    "lat": -34.867205,
+    "lng": -58.049545,
+    "metodo": "referencia"
+  },
+  "Brown 750, Moron, OESTE, Argentina": {
+    "lat": -34.654558,
+    "lng": -58.618414,
+    "metodo": "referencia"
+  },
+  "Arias 2340, Castelar, Oeste, Argentina": {
+    "lat": -34.656329,
+    "lng": -58.643983,
+    "metodo": "referencia"
+  },
+  "Rivadavia 16200, Haedo, oeste, Argentina": {
+    "lat": -34.647427,
+    "lng": -58.59717,
+    "metodo": "referencia"
+  },
+  "Avenida de Mayo 850, Ramos Mejia, OESTE, Argentina": {
+    "lat": -34.649161,
+    "lng": -58.562603,
+    "metodo": "referencia"
+  },
+  "Soler 220, Ituzaingo, Oeste, Argentina": {
+    "lat": -34.659167,
+    "lng": -58.671992,
+    "metodo": "referencia"
+  },
+  "Dr. Ignacio Arieta 3200, San Justo, OESTE, Argentina": {
+    "lat": -34.685002,
+    "lng": -58.563535,
+    "metodo": "referencia"
+  },
+  "Vergara 3900, Hurlingham, Oeste, Argentina": {
+    "lat": -34.596005,
+    "lng": -58.636204,
+    "metodo": "referencia"
+  },
+  "Urquiza 4800, Caseros, oeste, Argentina": {
+    "lat": -34.607906,
+    "lng": -58.567053,
+    "metodo": "referencia"
+  },
+  "Joly 2650, Moreno, OESTE, Argentina": {
+    "lat": -34.6536959,
+    "lng": -58.7834045,
+    "metodo": "nominatim"
+  }
+}
