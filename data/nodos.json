@@ -12,7 +12,7 @@
     "latitud": -34.6084183,
     "longitud": -58.4195315,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:52:59.114Z",
     "datos_originales": {
@@ -84,7 +84,7 @@
     "latitud": -34.5967486,
     "longitud": -58.4432377,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:02.049Z",
     "datos_originales": {
@@ -252,7 +252,7 @@
     "latitud": -34.6169194,
     "longitud": -58.3716839,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:09.472Z",
     "datos_originales": {
@@ -492,7 +492,7 @@
     "latitud": -34.528235,
     "longitud": -58.47539,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:19.895Z",
     "datos_originales": {
@@ -564,7 +564,7 @@
     "latitud": -34.474112,
     "longitud": -58.526479,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:23.540Z",
     "datos_originales": {
@@ -732,7 +732,7 @@
     "latitud": -34.662361,
     "longitud": -58.367581,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:30.467Z",
     "datos_originales": {
@@ -900,7 +900,7 @@
     "latitud": -34.725888,
     "longitud": -58.255267,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:38.142Z",
     "datos_originales": {
@@ -972,7 +972,7 @@
     "latitud": -34.919052,
     "longitud": -57.956791,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:40.799Z",
     "datos_originales": {
@@ -1020,7 +1020,7 @@
     "latitud": -34.654558,
     "longitud": -58.618414,
     "estado": "activo",
-    "mostrar_direccion_publica": false,
+    "mostrar_direccion_publica": true,
     "geocodificado_ok": true,
     "fecha_actualizacion": "2026-09-12T13:53:43.300Z",
     "datos_originales": {

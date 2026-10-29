@@ -16,7 +16,13 @@ import {
   Compass,
   ArrowRight,
   Info,
+  Loader2,
 } from 'lucide-react';
+import {
+  normalizarTexto,
+  geocodificarTextoBuscado,
+  obtenerNodosMasCercanos,
+} from './utils/geocodingClient';
 
 export default function App() {
   const [nodos, setNodos] = useState<NodoUTT[]>([]);
@@ -33,6 +39,16 @@ export default function App() {
   const [busqueda, setBusqueda] = useState('');
   const [regionSeleccionada, setRegionSeleccionada] = useState<Region | 'TODAS'>('TODAS');
   const [diaSeleccionado, setDiaSeleccionado] = useState<DiaEntrega | 'TODOS'>('TODOS');
+
+  // Estado para búsqueda por proximidad geográfica y geocodificación
+  const [ubicacionBuscada, setUbicacionBuscada] = useState<{
+    lat: number;
+    lng: number;
+    nombre: string;
+    region?: string;
+  } | null>(null);
+  const [nodosProximidad, setNodosProximidad] = useState<NodoUTT[]>([]);
+  const [cargandoGeocodificacion, setCargandoGeocodificacion] = useState(false);
 
   // Nodo seleccionado actualmente (en mapa o lista)
   const [nodoSeleccionado, setNodoSeleccionado] = useState<NodoUTT | null>(null);
@@ -81,37 +97,141 @@ export default function App() {
     cargarNodos();
   }, []);
 
-  // Filtrado de nodos para la vista pública (solo nodos activos)
-  const nodosFiltrados = useMemo(() => {
+  // 1. Nodos activos que respetan los filtros generales (Región y Día de Entrega).
+  // Estos nodos NUNCA se ocultan del mapa al buscar, permitiendo siempre ver las zonas aledañas.
+  const nodosActivosGenerales = useMemo(() => {
     return nodos.filter((nodo) => {
-      // En vista pública mostramos solo nodos con estado 'activo'
       if (nodo.estado !== 'activo') return false;
-
-      // Filtro por región
-      if (regionSeleccionada !== 'TODAS' && nodo.region !== regionSeleccionada) {
-        return false;
-      }
-
-      // Filtro por día de entrega
-      if (diaSeleccionado !== 'TODOS' && nodo.dias_entrega !== diaSeleccionado) {
-        return false;
-      }
-
-      // Filtro de texto libre (nombre, barrio, calle)
-      if (busqueda.trim()) {
-        const query = busqueda.toLowerCase().trim();
-        const coincideNombre = nodo.nombre.toLowerCase().includes(query);
-        const coincideLocalidad = nodo.localidad.toLowerCase().includes(query);
-        const coincideDireccion = nodo.direccion.toLowerCase().includes(query);
-        const coincideRegion = nodo.region.toLowerCase().includes(query);
-        if (!coincideNombre && !coincideLocalidad && !coincideDireccion && !coincideRegion) {
-          return false;
-        }
-      }
-
+      if (regionSeleccionada !== 'TODAS' && nodo.region !== regionSeleccionada) return false;
+      if (diaSeleccionado !== 'TODOS' && nodo.dias_entrega !== diaSeleccionado) return false;
       return true;
     });
-  }, [nodos, busqueda, regionSeleccionada, diaSeleccionado]);
+  }, [nodos, regionSeleccionada, diaSeleccionado]);
+
+  // 2. Coincidencia estricta de texto en los nodos activos
+  const nodosCoincidenciaTexto = useMemo(() => {
+    if (!busqueda.trim()) return nodosActivosGenerales;
+    const query = normalizarTexto(busqueda);
+    return nodosActivosGenerales.filter((nodo) => {
+      const nom = normalizarTexto(nodo.nombre);
+      const loc = normalizarTexto(nodo.localidad);
+      const dir = normalizarTexto(nodo.direccion);
+      const reg = normalizarTexto(nodo.region);
+      return nom.includes(query) || loc.includes(query) || dir.includes(query) || reg.includes(query);
+    });
+  }, [nodosActivosGenerales, busqueda]);
+
+  // 3. Efecto de geocodificación y búsqueda por proximidad cuando no hay coincidencias exactas
+  useEffect(() => {
+    const query = busqueda.trim();
+    if (!query) {
+      setUbicacionBuscada(null);
+      setNodosProximidad([]);
+      setCargandoGeocodificacion(false);
+      return;
+    }
+
+    // Si hay coincidencias de texto exactas, usamos el listado filtrado normal
+    if (nodosCoincidenciaTexto.length > 0) {
+      setUbicacionBuscada(null);
+      setNodosProximidad([]);
+      setCargandoGeocodificacion(false);
+      return;
+    }
+
+    // Si no hay coincidencias exactas, disparamos geocodificación del barrio/calle ingresada
+    let cancelado = false;
+    setCargandoGeocodificacion(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const ubicacion = await geocodificarTextoBuscado(query);
+        if (cancelado) return;
+
+        if (ubicacion) {
+          setUbicacionBuscada(ubicacion);
+          // Limpiar cualquier nodo seleccionado previamente para que el destino sea automáticamente
+          // el primer nodo más cercano de la lista
+          setNodoSeleccionado(null);
+
+          // Buscamos los nodos más cercanos dentro de los nodos activos generales
+          // (o dentro de toda la red si la región filtrada estuviera vacía)
+          const universo =
+            nodosActivosGenerales.length > 0
+              ? nodosActivosGenerales
+              : nodos.filter((n) => n.estado === 'activo');
+
+          const masCercanos = obtenerNodosMasCercanos(universo, ubicacion.lat, ubicacion.lng, 4);
+          setNodosProximidad(masCercanos);
+        } else {
+          setUbicacionBuscada(null);
+          setNodosProximidad([]);
+        }
+      } catch (err) {
+        if (!cancelado) {
+          setUbicacionBuscada(null);
+          setNodosProximidad([]);
+        }
+      } finally {
+        if (!cancelado) {
+          setCargandoGeocodificacion(false);
+        }
+      }
+    }, 180);
+
+    return () => {
+      cancelado = true;
+      clearTimeout(timer);
+    };
+  }, [busqueda, nodosCoincidenciaTexto.length, nodosActivosGenerales, nodos]);
+
+  // ¿Estamos mostrando resultados por proximidad?
+  const esModoProximidad = Boolean(
+    busqueda.trim().length >= 3 &&
+      nodosCoincidenciaTexto.length === 0 &&
+      (ubicacionBuscada !== null || nodosProximidad.length > 0)
+  );
+
+  // Distancia del nodo más cercano para evaluar el umbral de 5 km
+  const distanciaMinimaKm =
+    nodosProximidad.length > 0 && nodosProximidad[0].distanciaKm !== undefined
+      ? nodosProximidad[0].distanciaKm
+      : Infinity;
+
+  // Si el nodo más cercano está a <= 5 km, hay cobertura cercana (no mostrar cartel amarillo de alerta)
+  const tieneCoberturaCercana = distanciaMinimaKm <= 5.0;
+
+  // Lista de nodos que se visualizan en el panel lateral izquierdo
+  // Ordenamiento estricto de menor a mayor distancia ascendente (a.distancia - b.distancia)
+  const nodosParaLista = useMemo(() => {
+    if (esModoProximidad) {
+      return [...nodosProximidad].sort(
+        (a, b) => (a.distanciaKm ?? Infinity) - (b.distanciaKm ?? Infinity)
+      );
+    }
+    return nodosCoincidenciaTexto;
+  }, [esModoProximidad, nodosProximidad, nodosCoincidenciaTexto]);
+
+  // Nodo hacia el cual se traza la ruta en el mapa:
+  // Si el usuario seleccionó un nodo explícitamente (clickeando "Ubicar"), se traza hacia ese nodo.
+  // Caso contrario, se asigna automáticamente el primer nodo de la lista ordenada (el más cercano).
+  const nodoDestinoRuta = useMemo(() => {
+    if (!ubicacionBuscada) return null;
+    if (nodoSeleccionado) return nodoSeleccionado;
+    if (nodosParaLista.length > 0) return nodosParaLista[0];
+    return null;
+  }, [ubicacionBuscada, nodoSeleccionado, nodosParaLista]);
+
+  // IDs de nodos a resaltar sutilmente en el mapa
+  const nodosResaltadosIds = useMemo(() => {
+    if (esModoProximidad) {
+      return nodosProximidad.map((n) => n.id);
+    }
+    if (busqueda.trim().length > 0) {
+      return nodosCoincidenciaTexto.map((n) => n.id);
+    }
+    return [];
+  }, [esModoProximidad, nodosProximidad, busqueda, nodosCoincidenciaTexto]);
 
   // Guardar (crear o editar) un nodo en el backend
   const handleGuardarNodo = async (datos: Partial<NodoUTT>) => {
@@ -271,7 +391,7 @@ export default function App() {
                 }`}
               >
                 <MapIcon className="w-3.5 h-3.5" />
-                <span>Ver Mapa ({nodosFiltrados.length})</span>
+                <span>Ver Mapa ({nodosActivosGenerales.length})</span>
               </button>
               <button
                 onClick={() => setVistaMovil('lista')}
@@ -282,7 +402,7 @@ export default function App() {
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
-                <span>Ver Listado ({nodosFiltrados.length})</span>
+                <span>Ver Listado ({nodosParaLista.length})</span>
               </button>
             </div>
 
@@ -296,14 +416,67 @@ export default function App() {
               >
                 <FiltrosBusqueda
                   busqueda={busqueda}
-                  onCambiarBusqueda={setBusqueda}
+                  onCambiarBusqueda={(texto) => {
+                    setBusqueda(texto);
+                    setNodoSeleccionado(null);
+                  }}
                   regionSeleccionada={regionSeleccionada}
-                  onCambiarRegion={setRegionSeleccionada}
+                  onCambiarRegion={(reg) => {
+                    setRegionSeleccionada(reg);
+                    setNodoSeleccionado(null);
+                  }}
                   diaSeleccionado={diaSeleccionado}
-                  onCambiarDia={setDiaSeleccionado}
+                  onCambiarDia={(dia) => {
+                    setDiaSeleccionado(dia);
+                    setNodoSeleccionado(null);
+                  }}
                   totalNodos={nodos.filter((n) => n.estado === 'activo').length}
-                  totalFiltrados={nodosFiltrados.length}
+                  totalFiltrados={nodosParaLista.length}
+                  esModoProximidad={esModoProximidad}
+                  cargandoGeocodificacion={cargandoGeocodificacion}
                 />
+
+                {/* Condición 1: Si el nodo más cercano está a > 5 km, mostrar el aviso amarillo de alerta */}
+                {esModoProximidad && !tieneCoberturaCercana && (
+                  <div className="p-3.5 bg-amber-50/95 border border-amber-200 rounded-2xl text-xs space-y-1.5 shadow-xs animate-in fade-in duration-200">
+                    <div className="flex items-start gap-2">
+                      <Compass className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="font-bold text-amber-950 leading-snug">
+                          No hay nodos en la región pesquisada. Te mostramos las opciones más cercanas en zonas adyacentes:
+                        </p>
+                        {ubicacionBuscada && (
+                          <p className="text-amber-800 text-[11px] font-medium">
+                            📍 Búsqueda: <strong>{ubicacionBuscada.nombre}</strong> (el nodo más próximo se ubica a {nodosProximidad[0]?.distanciaTexto})
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Condición 2: Si existen nodos a <= 5 km, mostrar directamente los nodos sin el cartel amarillo */}
+                {esModoProximidad && tieneCoberturaCercana && (
+                  <div className="p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-2xl text-xs flex items-center justify-between gap-2 text-emerald-950 shadow-xs animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shrink-0"></span>
+                      <span className="font-medium">
+                        {ubicacionBuscada ? (
+                          <>
+                            Nodos con cobertura cercana a <strong>{ubicacionBuscada.nombre}</strong> (en radio de 5 km):
+                          </>
+                        ) : (
+                          'Nodos con cobertura cercana a tu ubicación (en radio de 5 km):'
+                        )}
+                      </span>
+                    </div>
+                    {nodosProximidad[0]?.distanciaTexto && (
+                      <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full shrink-0 border border-emerald-200">
+                        a {nodosProximidad[0].distanciaTexto}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Lista scrolleable de tarjetas de nodos */}
                 <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[600px]">
@@ -311,13 +484,18 @@ export default function App() {
                     <div className="p-8 text-center bg-white rounded-2xl border border-stone-200 text-xs text-stone-500">
                       Cargando la red de nodos...
                     </div>
-                  ) : nodosFiltrados.length === 0 ? (
+                  ) : cargandoGeocodificacion ? (
+                    <div className="p-8 text-center bg-white rounded-2xl border border-stone-200 text-xs text-stone-500 flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-emerald-700" />
+                      <p className="font-medium text-stone-700">Georreferenciando barrio y buscando nodos cercanos...</p>
+                    </div>
+                  ) : nodosParaLista.length === 0 ? (
                     <div className="p-8 text-center bg-white rounded-2xl border border-stone-200 text-xs text-stone-500">
                       <p className="font-semibold text-stone-700">No encontramos ningún nodo con esos filtros.</p>
-                      <p className="text-stone-400 mt-1">Probá cambiando la región o buscando otro barrio.</p>
+                      <p className="text-stone-400 mt-1">Probá cambiando la región o buscando otro barrio (ej: Villa del Parque, Devoto, San Isidro, Morón).</p>
                     </div>
                   ) : (
-                    nodosFiltrados.map((nodo) => (
+                    nodosParaLista.map((nodo) => (
                       <TarjetaNodo
                         key={nodo.id}
                         nodo={nodo}
@@ -341,10 +519,13 @@ export default function App() {
                 }`}
               >
                 <MapaNodos
-                  nodos={nodosFiltrados}
+                  nodos={nodosActivosGenerales}
                   nodoSeleccionado={nodoSeleccionado}
                   onSeleccionarNodo={(n) => setNodoSeleccionado(n)}
                   esModoAdmin={false}
+                  ubicacionBuscada={ubicacionBuscada}
+                  nodosResaltadosIds={nodosResaltadosIds}
+                  nodoDestinoRuta={nodoDestinoRuta}
                 />
               </div>
             </div>

@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+.utt-route-tooltip {
+  background: #ffffff !important;
+  color: #1c1917 !important;
+  border: 1px solid #e7e5e4 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 0.75rem !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12) !important;
+}
+
+.utt-route-tooltip:before {
+  border-top-color: #ffffff !important;
+}
+
+/* Forzar color blanco puro en texto e ícono de WhatsApp dentro de Leaflet Popup */
+.leaflet-container a.utt-whatsapp-btn,
+.leaflet-container a.utt-whatsapp-btn:hover,
+.leaflet-container a.utt-whatsapp-btn:focus,
+.leaflet-container a.utt-whatsapp-btn:visited,
+.leaflet-popup-content a.utt-whatsapp-btn,
+.leaflet-popup-content a.utt-whatsapp-btn *,
+.utt-whatsapp-btn,
+.utt-whatsapp-btn span,
+.utt-whatsapp-btn svg,
+.utt-whatsapp-btn path {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  text-decoration: none !important;
+}
+

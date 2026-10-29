@@ -18,6 +18,8 @@ export interface NodoUTT {
   mostrar_direccion_publica: boolean;
   geocodificado_ok: boolean;
   fecha_actualizacion: string;
+  distanciaKm?: number;
+  distanciaTexto?: string;
   datos_originales?: {
     region_raw?: string;
     dias_raw?: string;

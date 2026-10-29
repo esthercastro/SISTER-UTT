@@ -253,5 +253,10 @@
     "lat": -34.6536959,
     "lng": -58.7834045,
     "metodo": "nominatim"
+  },
+  "RÍO CUARTO 4880, Buenos Aires, Buenos Aires, Argentina": {
+    "lat": -34.6584131,
+    "lng": -58.4159014,
+    "metodo": "nominatim"
   }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X, Filter, RotateCcw } from 'lucide-react';
+import { Search, X, Filter, RotateCcw, Loader2 } from 'lucide-react';
 import { Region, DiaEntrega } from '../types';
 
 interface FiltrosBusquedaProps {
@@ -11,6 +11,8 @@ interface FiltrosBusquedaProps {
   onCambiarDia: (dia: DiaEntrega | 'TODOS') => void;
   totalNodos: number;
   totalFiltrados: number;
+  esModoProximidad?: boolean;
+  cargandoGeocodificacion?: boolean;
 }
 
 const REGIONES: Array<{ id: Region | 'TODAS'; label: string }> = [
@@ -37,6 +39,8 @@ export const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
   onCambiarDia,
   totalNodos,
   totalFiltrados,
+  esModoProximidad = false,
+  cargandoGeocodificacion = false,
 }) => {
   const hayFiltrosActivos =
     busqueda.trim().length > 0 || regionSeleccionada !== 'TODAS' || diaSeleccionado !== 'TODOS';
@@ -61,7 +65,11 @@ export const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
           placeholder="Buscá por nombre del nodo, barrio o calle..."
           className="w-full pl-10 pr-9 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-sm text-stone-800 placeholder-stone-400 rounded-xl border border-stone-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
         />
-        {busqueda && (
+        {cargandoGeocodificacion ? (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-600">
+            <Loader2 className="w-4 h-4 animate-spin" />
+          </div>
+        ) : busqueda ? (
           <button
             onClick={() => onCambiarBusqueda('')}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
@@ -69,7 +77,7 @@ export const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
           >
             <X className="w-4 h-4" />
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Filtro de Región en Chips horizontales scrolleables */}
@@ -125,7 +133,15 @@ export const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
       {/* Barra de estado y contador de resultados */}
       <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-xs text-stone-500">
         <span>
-          Mostrando <strong className="text-stone-800">{totalFiltrados}</strong> de {totalNodos} nodos
+          {esModoProximidad ? (
+            <>
+              Mostrando <strong className="text-emerald-800 font-bold">{totalFiltrados}</strong> opciones más cercanas
+            </>
+          ) : (
+            <>
+              Mostrando <strong className="text-stone-800">{totalFiltrados}</strong> de {totalNodos} nodos
+            </>
+          )}
         </span>
         {hayFiltrosActivos && (
           <button
