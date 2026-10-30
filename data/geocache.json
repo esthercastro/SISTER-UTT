@@ -263,5 +263,33 @@
     "lat": -34.6584131,
     "lng": -58.4159014,
     "metodo": "nominatim"
+  },
+  "Av. del Libertador 3883, Ciudad Autónoma de Buenos Aires, Argentina": {
+    "lat": -34.56973,
+    "lng": -58.4207825,
+    "metodo": "nominatim",
+    "direccionLimpia": "Av. del Libertador 3883, Ciudad Autónoma de Buenos Aires",
+    "calleYAltura": "Av. del Libertador 3883"
+  },
+  "Av. Corrientes 1234, Ciudad Autónoma de Buenos Aires, Argentina": {
+    "lat": -34.6045415,
+    "lng": -58.3958768,
+    "metodo": "nominatim",
+    "direccionLimpia": "Av. Corrientes 1234, Ciudad Autónoma de Buenos Aires",
+    "calleYAltura": "Av. Corrientes 1234"
+  },
+  "Norte, Av. Santa Fe 3200, Ciudad Autónoma de Buenos Aires, Argentina": {
+    "lat": -34.589224,
+    "lng": -58.4100543,
+    "metodo": "nominatim",
+    "direccionLimpia": "Norte, Av. Santa Fe 3200, Ciudad Autónoma de Buenos Aires",
+    "calleYAltura": "Av. Santa Fe 3200"
+  },
+  "Av. Santa Fe 3200, Buenos Aires, Argentina": {
+    "lat": -34.589224,
+    "lng": -58.4100543,
+    "metodo": "nominatim",
+    "direccionLimpia": "Norte, Av. Santa Fe 3200, Ciudad Autónoma de Buenos Aires",
+    "calleYAltura": "Av. Santa Fe 3200"
   }
 }

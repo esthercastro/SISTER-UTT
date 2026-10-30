@@ -233,6 +233,20 @@ export default function App() {
     return [];
   }, [esModoProximidad, nodosProximidad, busqueda, nodosCoincidenciaTexto]);
 
+  // Nodos a renderizar en el mapa:
+  // - En modo proximidad: se muestran los nodos activos generales para visualizar zonas aledañas
+  // - Al filtrar por texto con coincidencias (ej. "Palermo"): se muestran los nodos coincidentes
+  // - Sin búsqueda: se muestran todos los nodos activos generales
+  const nodosParaMapa = useMemo(() => {
+    if (esModoProximidad) {
+      return nodosActivosGenerales;
+    }
+    if (busqueda.trim().length > 0 && nodosCoincidenciaTexto.length > 0) {
+      return nodosCoincidenciaTexto;
+    }
+    return nodosActivosGenerales;
+  }, [esModoProximidad, nodosActivosGenerales, busqueda, nodosCoincidenciaTexto]);
+
   // Guardar (crear o editar) un nodo en el backend
   const handleGuardarNodo = async (datos: Partial<NodoUTT>) => {
     try {
@@ -519,13 +533,15 @@ export default function App() {
                 }`}
               >
                 <MapaNodos
-                  nodos={nodosActivosGenerales}
+                  nodos={nodosParaMapa}
                   nodoSeleccionado={nodoSeleccionado}
                   onSeleccionarNodo={(n) => setNodoSeleccionado(n)}
                   esModoAdmin={false}
                   ubicacionBuscada={ubicacionBuscada}
                   nodosResaltadosIds={nodosResaltadosIds}
                   nodoDestinoRuta={nodoDestinoRuta}
+                  searchTerm={busqueda}
+                  nodosFiltrados={nodosCoincidenciaTexto}
                 />
               </div>
             </div>

@@ -12,6 +12,8 @@ interface MapaNodosProps {
   ubicacionBuscada?: { lat: number; lng: number; nombre: string } | null;
   nodosResaltadosIds?: string[];
   nodoDestinoRuta?: NodoUTT | null;
+  searchTerm?: string;
+  nodosFiltrados?: NodoUTT[];
 }
 
 // Colores según región para una diferenciación visual sutil pero clara
@@ -96,12 +98,15 @@ export const MapaNodos: React.FC<MapaNodosProps> = ({
   ubicacionBuscada = null,
   nodosResaltadosIds = [],
   nodoDestinoRuta = null,
+  searchTerm = '',
+  nodosFiltrados = [],
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const searchMarkerRef = useRef<L.Marker | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
+  const limitesGeneralesRef = useRef<L.LatLngBounds | null>(null);
 
   // Inicializar mapa de Leaflet
   useEffect(() => {
@@ -263,11 +268,60 @@ export const MapaNodos: React.FC<MapaNodosProps> = ({
       cantidadValidos++;
     });
 
-    // Ajustar vista del mapa si hay marcadores y no hay selección activa ni búsqueda activa
-    if (cantidadValidos > 0 && !nodoSeleccionado && !ubicacionBuscada) {
+    // Ajustar vista general inicial del mapa solo cuando NO hay búsqueda por texto, ni selección, ni búsqueda por proximidad
+    if (cantidadValidos > 0 && !nodoSeleccionado && !ubicacionBuscada && !searchTerm?.trim()) {
+      limitesGeneralesRef.current = bounds;
       mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
     }
-  }, [nodos, esModoAdmin, nodoSeleccionado, nodosResaltadosIds, ubicacionBuscada, nodoDestinoRuta]);
+  }, [nodos, esModoAdmin, nodoSeleccionado, nodosResaltadosIds, ubicacionBuscada, nodoDestinoRuta, searchTerm]);
+
+  // Zoom automático hacia las coincidencias cuando cambia la lista de nodos filtrados por texto de búsqueda (searchTerm)
+  useEffect(() => {
+    const mapa = mapInstanceRef.current;
+    if (!mapa) return;
+
+    // Cuando el usuario borre la búsqueda (o haga clic en "Restablecer filtros"), el mapa vuelve a la vista general original
+    if (!searchTerm || !searchTerm.trim()) {
+      if (nodoSeleccionado || ubicacionBuscada) return;
+
+      if (limitesGeneralesRef.current && limitesGeneralesRef.current.isValid()) {
+        mapa.fitBounds(limitesGeneralesRef.current, { padding: [40, 40], maxZoom: 14 });
+      } else {
+        mapa.flyTo([-34.615, -58.44], 11, { duration: 0.8 });
+      }
+      return;
+    }
+
+    // Si estamos en modo proximidad con geocodificación activa (pin azul), el efecto de ruta se encarga del encuadre
+    if (ubicacionBuscada) return;
+
+    // Filtrar nodos que tengan coordenadas válidas
+    const coincidencias = (nodosFiltrados || []).filter(
+      (n) => n.latitud !== null && n.longitud !== null && n.latitud !== 0 && n.longitud !== 0
+    );
+
+    if (coincidencias.length === 1) {
+      // Si hay un único nodo filtrado, usar map.flyTo([nodo.lat, nodo.lng], 15)
+      const nodo = coincidencias[0];
+      mapa.flyTo([nodo.latitud!, nodo.longitud!], 15, {
+        duration: 0.85,
+      });
+
+      // Abrir el popup del marcador automáticamente tras la animación
+      const timer = setTimeout(() => {
+        const marker = markersRef.current.get(nodo.id);
+        if (marker) {
+          marker.openPopup();
+        }
+      }, 450);
+
+      return () => clearTimeout(timer);
+    } else if (coincidencias.length > 1) {
+      // Si hay múltiples nodos filtrados, calcular el L.latLngBounds de esos nodos y aplicar map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+      const bounds = L.latLngBounds(coincidencias.map((n) => [n.latitud!, n.longitud!]));
+      mapa.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [searchTerm, nodosFiltrados, ubicacionBuscada, nodoSeleccionado]);
 
   // Manejar marcador y centrado de la ubicación buscada por proximidad
   useEffect(() => {

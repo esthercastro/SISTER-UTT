@@ -1,4 +1,7 @@
 import { NodoUTT } from '../types';
+import { cleanAddressQuery, extraerCalleYAltura } from './addressCleaner';
+
+export { cleanAddressQuery, extraerCalleYAltura };
 
 /**
  * Normaliza cadenas de texto para comparaciones geográficas insensibles a mayúsculas,
@@ -277,12 +280,16 @@ export function formatearDistancia(km: number): string {
 export async function geocodificarTextoBuscado(
   texto: string
 ): Promise<{ lat: number; lng: number; nombre: string; region?: string } | null> {
-  const limpio = normalizarTexto(texto);
+  const dirSanitizada = cleanAddressQuery(texto);
+  const calleYAltura = extraerCalleYAltura(texto);
+  const limpio = normalizarTexto(dirSanitizada || texto);
   if (!limpio || limpio.length < 3) return null;
 
   const tieneNumeracion = /\d+/.test(texto);
+  const nombreEtiqueta = calleYAltura || dirSanitizada || texto.trim();
 
-  // 1. Si contiene números (ej. "Río Cuarto 4880", "Díaz Vélez 3761"), consultar primero la geocodificación exacta
+  // 1. Si contiene números (ej. "Río Cuarto 4880", o pegado de Google Maps "Arco 3 y 4, Av. del Libertador 3883..."),
+  // consultar primero la geocodificación remota con sanitización y fallback
   if (tieneNumeracion) {
     try {
       const res = await fetch('/api/geocode', {
@@ -300,7 +307,7 @@ export async function geocodificarTextoBuscado(
           return {
             lat: data.lat,
             lng: data.lng,
-            nombre: texto.trim(),
+            nombre: data.calleYAltura || calleYAltura || data.direccionLimpia || nombreEtiqueta,
           };
         }
       }
@@ -339,7 +346,7 @@ export async function geocodificarTextoBuscado(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          direccion: texto,
+          direccion: dirSanitizada || texto,
           localidad: 'Buenos Aires',
           provincia: 'Buenos Aires',
         }),
@@ -350,7 +357,7 @@ export async function geocodificarTextoBuscado(
           return {
             lat: data.lat,
             lng: data.lng,
-            nombre: texto.trim(),
+            nombre: data.direccionLimpia || nombreEtiqueta,
           };
         }
       }

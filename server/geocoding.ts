@@ -1,9 +1,21 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { limpiarTexto } from './normalizador.js';
+import { cleanAddressQuery, extraerCalleYAltura } from '../src/utils/addressCleaner.js';
+
+export { cleanAddressQuery, extraerCalleYAltura };
 
 const cacheFile = path.join(process.cwd(), 'data', 'geocache.json');
-let cacheMemoria: Record<string, { lat: number; lng: number; metodo: 'nominatim' | 'referencia' }> = {};
+let cacheMemoria: Record<
+  string,
+  {
+    lat: number;
+    lng: number;
+    metodo: 'nominatim' | 'referencia';
+    direccionNormalizada?: string;
+    calleYAltura?: string;
+  }
+> = {};
 
 try {
   if (fs.existsSync(cacheFile)) {
@@ -13,7 +25,16 @@ try {
   cacheMemoria = {};
 }
 
-function guardarEnCache(query: string, data: { lat: number; lng: number; metodo: 'nominatim' | 'referencia' }) {
+function guardarEnCache(
+  query: string,
+  data: {
+    lat: number;
+    lng: number;
+    metodo: 'nominatim' | 'referencia';
+    direccionNormalizada?: string;
+    calleYAltura?: string;
+  }
+) {
   cacheMemoria[query] = data;
   try {
     fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
@@ -92,7 +113,7 @@ const COORDENADAS_REFERENCIA: Record<string, { lat: number; lng: number }> = {
   hurlingham: { lat: -34.5965, lng: -58.6369 },
   tres_de_febrero: { lat: -34.6067, lng: -58.5644 },
   caseros: { lat: -34.6074, lng: -58.5658 },
-  el_palomar: { lat: -34.6083, lng: -58.5917 }
+  el_palomar: { lat: -34.6083, lng: -58.5917 },
 };
 
 let lastNominatimCallTime = 0;
@@ -107,30 +128,10 @@ async function esperarRateLimit() {
   lastNominatimCallTime = Date.now();
 }
 
-export async function geocodificarDireccion(
-  direccion: string,
-  localidad?: string,
-  provincia?: string
-): Promise<{ lat: number; lng: number; metodo: 'nominatim' | 'referencia' | 'no_encontrado' }> {
-  const dirLimpia = limpiarTexto(direccion);
-  const locLimpia = limpiarTexto(localidad);
-  const provLimpia = limpiarTexto(provincia) || 'Buenos Aires';
-
-  if (!dirLimpia && !locLimpia) {
-    return { lat: 0, lng: 0, metodo: 'no_encontrado' };
-  }
-
-  // Armar query contextualizada para Argentina
-  const query = `${dirLimpia}, ${locLimpia}, ${provLimpia}, Argentina`
-    .replace(/,\s*,/g, ',')
-    .replace(/^,\s*/, '')
-    .trim();
-
-  // 1. Revisar cache primero
-  if (cacheMemoria[query]) {
-    return cacheMemoria[query];
-  }
-
+/**
+ * Realiza una consulta directa a Nominatim con timeout y headers apropiados
+ */
+async function consultarNominatimDirecto(query: string): Promise<{ lat: number; lng: number } | null> {
   try {
     await esperarRateLimit();
 
@@ -139,7 +140,7 @@ export async function geocodificarDireccion(
     )}&limit=1&countrycodes=ar`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const timeout = setTimeout(() => controller.abort(), 4500);
 
     const response = await fetch(url, {
       headers: {
@@ -157,17 +158,106 @@ export async function geocodificarDireccion(
         const lat = parseFloat(data[0].lat);
         const lng = parseFloat(data[0].lon);
         if (!isNaN(lat) && !isNaN(lng)) {
-          const resultado = { lat, lng, metodo: 'nominatim' as const };
-          guardarEnCache(query, resultado);
-          return resultado;
+          return { lat, lng };
         }
       }
     }
   } catch (err) {
     console.warn(`[Nominatim] Consulta fallida para "${query}":`, (err as Error).message);
   }
+  return null;
+}
 
-  // Fallback con tabla de referencia por localidad
+export async function geocodificarDireccion(
+  direccion: string,
+  localidad?: string,
+  provincia?: string
+): Promise<{
+  lat: number;
+  lng: number;
+  metodo: 'nominatim' | 'referencia' | 'no_encontrado';
+  direccionLimpia?: string;
+  calleYAltura?: string;
+}> {
+  // 1. Sanitización profunda de la dirección ingresada
+  const dirSanitizada = cleanAddressQuery(direccion);
+  const calleYAltura = extraerCalleYAltura(direccion);
+  const dirLimpia = dirSanitizada || limpiarTexto(direccion);
+  const locLimpia = limpiarTexto(localidad);
+  const provLimpia = limpiarTexto(provincia) || 'Buenos Aires';
+
+  if (!dirLimpia && !locLimpia) {
+    return { lat: 0, lng: 0, metodo: 'no_encontrado' };
+  }
+
+  // 2. Armar query principal contextualizada para Argentina
+  const queryPrincipal = dirLimpia.toLowerCase().includes('buenos aires')
+    ? `${dirLimpia}, Argentina`
+    : `${dirLimpia}, ${locLimpia}, ${provLimpia}, Argentina`
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join(', ');
+
+  // Revisar cache para la query principal
+  if (cacheMemoria[queryPrincipal]) {
+    return {
+      ...cacheMemoria[queryPrincipal],
+      direccionLimpia: dirLimpia,
+      calleYAltura: calleYAltura || undefined,
+    };
+  }
+
+  // 3. Intento inicial con el texto sanitizado en Nominatim
+  const resInicial = await consultarNominatimDirecto(queryPrincipal);
+  if (resInicial) {
+    const resultado = {
+      lat: resInicial.lat,
+      lng: resInicial.lng,
+      metodo: 'nominatim' as const,
+      direccionLimpia: dirLimpia,
+      calleYAltura: calleYAltura || undefined,
+    };
+    guardarEnCache(queryPrincipal, resultado);
+    return resultado;
+  }
+
+  // 4. Extracción inteligente y Fallback (Reintento automático):
+  // Si la búsqueda inicial con el texto limpio devuelve un array vacío ([]),
+  // se hace un reintento automático extrayendo únicamente el patrón de [Nombre de Calle/Avenida + Altura numérica]
+  // concatenado con ", Buenos Aires, Argentina"
+  if (calleYAltura) {
+    const queryFallback = `${calleYAltura}, Buenos Aires, Argentina`;
+
+    if (cacheMemoria[queryFallback]) {
+      const enCache = cacheMemoria[queryFallback];
+      const resultado = {
+        lat: enCache.lat,
+        lng: enCache.lng,
+        metodo: enCache.metodo,
+        direccionLimpia: dirLimpia,
+        calleYAltura,
+      };
+      guardarEnCache(queryPrincipal, resultado);
+      return resultado;
+    }
+
+    const resFallback = await consultarNominatimDirecto(queryFallback);
+    if (resFallback) {
+      const resultado = {
+        lat: resFallback.lat,
+        lng: resFallback.lng,
+        metodo: 'nominatim' as const,
+        direccionLimpia: dirLimpia,
+        calleYAltura,
+      };
+      guardarEnCache(queryPrincipal, resultado);
+      guardarEnCache(queryFallback, resultado);
+      return resultado;
+    }
+  }
+
+  // 5. Fallback con tabla de referencia por localidad
   const locKey = locLimpia
     .toLowerCase()
     .normalize('NFD')
@@ -183,11 +273,14 @@ export async function geocodificarDireccion(
         lat: Number((coords.lat + jitterLat).toFixed(6)),
         lng: Number((coords.lng + jitterLng).toFixed(6)),
         metodo: 'referencia' as const,
+        direccionLimpia: dirLimpia,
+        calleYAltura: calleYAltura || undefined,
       };
-      guardarEnCache(query, resultado);
+      guardarEnCache(queryPrincipal, resultado);
       return resultado;
     }
   }
 
   return { lat: 0, lng: 0, metodo: 'no_encontrado' };
 }
+
