@@ -62,8 +62,9 @@ export const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
           type="text"
           value={busqueda}
           onChange={(e) => onCambiarBusqueda(e.target.value)}
-          placeholder="Buscá por nombre del nodo, barrio o calle..."
-          className="w-full pl-10 pr-9 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-sm text-stone-800 placeholder-stone-400 rounded-xl border border-stone-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
+          placeholder="Poné tu dirección y te mostramos el nodo más cercano..."
+          title="Poné tu dirección y te mostramos el nodo más cercano..."
+          className="w-full pl-9 sm:pl-10 pr-9 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-xs sm:text-sm text-stone-800 placeholder-stone-400 placeholder:text-[11px] sm:placeholder:text-xs md:placeholder:text-sm placeholder:tracking-tight rounded-xl border border-stone-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
         />
         {cargandoGeocodificacion ? (
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-600">

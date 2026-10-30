@@ -1,0 +1,5 @@
+{
+  "watch": ["server.ts", "server/**/*.ts", "src/**/*.ts", "src/**/*.tsx"],
+  "ignore": ["data/**", "**/*.json", "dist/**", "node_modules/**"],
+  "ext": "ts,tsx,js,jsx"
+}
